@@ -3,7 +3,11 @@ const { json } = require('express/lib/response');
 const querystring = require('querystring');
 
 
-
+const api ={
+    baseUrl: "https://api.github.com",
+    client_id:"dc83692f6469dfb1c327",
+    client_secret: "aece184aa646f14eeffa5e0393889eba57f719f5"
+}
 class GitHubController{
 
 
@@ -12,29 +16,26 @@ class GitHubController{
 
        
     await axios
-        .get(`https://api.github.com/repositories?page=1&per_page=16`)
+        .get(`${api.baseUrl}/repositories?page=1&per_page=16`, {
+            headers:{
+                "Authorization": "token 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"
+        }})
         .then((result)=>{
             let repositories = [];
             
             result.data.forEach(element => {
-                let linguagens= []
-                axios
-                    .get(element.languages_url)
-                    .then((result)=>{
-                        console.log(result.data);
-                        linguagens.push(result.data)
-                    })
-
+                
                 let repositorio = {
                     id: element.id,
                     dono: element.owner.login,
                     nome:  element.name,
-                    linguagens: linguagens
+                    repos_url: element.owner.repos_url,
+                    linguagens_url: element.languages_url,
                 }
                 repositories.push(repositorio)
             });
-            
             return res.status(200).json(repositories)
+            
         })
         .catch((error)=>{
             return res.status(500).json(error.message)
@@ -48,7 +49,6 @@ class GitHubController{
         await axios
         .get(`https://api.github.com/repos/${infoRepositorio.dono}/${infoRepositorio.nome}/languages`)
         .then((result)=>{       
-            console.log(result);     
             return res.status(200).result.data
         })
         .catch((error)=>{
